@@ -1,6 +1,5 @@
 import Home from './page/Home/index.js'
 import Contents from './page/Contents/index.js'
-import { createElement, render , Component} from './lib/domManipulator.js'
 
 export const routeList = [
   {
@@ -22,21 +21,34 @@ export function push( { path } ) {
   if( path === curPathname ) {
     return
   }
+
+  const locationChangeEvent = new CustomEvent( 'locationChange', { detail: { path } } )
+  document.dispatchEvent( locationChangeEvent )
+  window.history.pushState( '', '', path )
+}
+
+export function update( curEl, targetPath ) {
+  const { component } = routeList.find( ( { path } ) => path === targetPath )
+  const newEl = component()
+  curEl.replaceWith( newEl )
+  return newEl
 }
 
 export function back() {
-  
+  window.history.go( -1 )
 }
-
 
 export default function Route() {
   const pathname = location()
   const { component } = routeList.find( ( { path } ) => path === pathname )
   
   let el = component()
-  document.addEventListener( 'locationChange', () => {
-    //여기서 parentEl를 찾아서 자식 el를 다 없앤다
-    //해당 path에 맞는 el를 찾아 rendering 시킨다.
+  document.addEventListener( 'locationChange', event => {
+    el = update( el, event.detail.path )
+  } )
+
+  window.addEventListener( 'popstate', () => {
+    el = update( el, location() )
   } )
   
   return el

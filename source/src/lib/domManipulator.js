@@ -26,10 +26,10 @@ export function createElement( tagname, props, children ) {
 }
 
 export class Component {
-  constructor( parentEl, tagname, attribute, children ) {
+  constructor( parentEl, tagname, props, children ) {
     this.parentEl = parentEl
-    this.tagname = tagname
-    this.attribute = attribute
+    this.tagname = tagname || 'div'
+    this.props = props
     this.children = children
   }
 

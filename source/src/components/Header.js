@@ -4,8 +4,8 @@ import { push } from '../route.js'
 function Header() {
 
   return createElement( 'head', { class: 'header' }, [
-    createElement( 'div', { class: 'header-item left', onClick: () => { push( '/' ) } }, [ 'home' ] ),
-    createElement( 'div', { class: 'header-item right', onClick: () => { push( '/components' ) } }, [ 'components' ] )
+    createElement( 'div', { class: 'header-item left', onClick: () => { push( { path: '/' } ) } }, [ 'home' ] ),
+    createElement( 'div', { class: 'header-item right', onClick: () => { push( { path: '/components' } ) } }, [ 'components' ] )
   ] )
 }
 
