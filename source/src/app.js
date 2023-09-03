@@ -1,12 +1,17 @@
-import { createElement } from "./lib/domManipulator.js"
+import { Component, createElement } from "./lib/domManipulator.js"
 import Route from './route.js'
 import Header from './components/Header.js'
 
-function App() {
-  return createElement( 'div', { class: 'app' }, [ 
-    Header(),
-    Route()
-  ] ) 
+class App extends Component {
+  mounted() {
+    // console.log( 'App', this )
+  }
+  render() {
+    return createElement( 'div', { class: 'app' }, [ 
+      createElement( Header ),
+      createElement( Route )
+    ] ) 
+  }
 }
 
 export default App

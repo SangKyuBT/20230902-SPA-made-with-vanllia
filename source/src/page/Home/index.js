@@ -1,7 +1,12 @@
-import { createElement } from "../../lib/domManipulator.js"
+import { createElement, Component } from "../../lib/domManipulator.js"
 
-function Home() {
-  return createElement( 'div', {}, [ 'HOME' ] )
+class Home extends Component {
+
+  mounted() {
+  }
+  render() {
+    return createElement( 'div', {}, [ 'HOME' ] )
+  }
 }
 
 export default Home

@@ -1,5 +1,6 @@
 import Home from './page/Home/index.js'
 import Contents from './page/Contents/index.js'
+import { Component, createElement } from './lib/domManipulator.js'
 
 export const routeList = [
   {
@@ -38,18 +39,48 @@ export function back() {
   window.history.go( -1 )
 }
 
-export default function Route() {
-  const pathname = location()
-  const { component } = routeList.find( ( { path } ) => path === pathname )
-  
-  let el = component()
-  document.addEventListener( 'locationChange', event => {
-    el = update( el, event.detail.path )
-  } )
+export default class Route extends Component {
+  constructor( props ) {
+    super( props )
+    this.component = null
+  }
 
-  window.addEventListener( 'popstate', () => {
-    el = update( el, location() )
-  } )
-  
-  return el
+  create() {
+    const pathname = location()
+    const { component } = routeList.find( ( { path } ) => path === pathname )
+    this.component = component
+  }
+
+  mounted() {
+    this.locationChangeHandler = ( event ) => {
+      this.changeElement( event.detail.path )
+    }
+
+    this.popstateHandler = () => {
+      this.changeElement( location() )
+    }
+
+    document.addEventListener( 'locationChange', this.locationChangeHandler )
+    window.addEventListener( 'popstate', this.popstateHandler )
+  }
+
+  unmounted() {
+    document.removeEventListener( 'locationChange', this.locationChangeHandler )
+    window.removeEventListener( 'popstate', this.popstateHandler )
+  }
+
+  changeElement( targetPath ) {
+    const { component } = routeList.find( ( { path } ) => path === targetPath )
+    const componentInstance = createElement( component, {} )
+    componentInstance.render()
+
+    this.el.replaceWith( componentInstance.el )
+    this.el = componentInstance.el
+    componentInstance.mounted()
+    this.component = component
+  }
+
+  render() {
+    return createElement( this.component, {} ) 
+  }
 }

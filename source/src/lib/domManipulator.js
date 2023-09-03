@@ -1,62 +1,108 @@
-function getElement( item ) {
-  return item instanceof Component ? item.render() : item
+function validCompomentInstance( item ) {
+  return item instanceof Component
+}
+
+export function createRoot( el, component ) {
+  const rootComponentInstance = new Component()
+  rootComponentInstance.el = el
+
+  const componentInstance = createElement( component )
+  componentInstance.create()
+
+  render( el, [ componentInstance ] )
+
+  rootComponentInstance.children = [ componentInstance ]
 }
 
 export function render( targetEl, children ) {
-  const elementList = children.map( child => getElement( child ) )
-  targetEl.append( ...elementList )  
+  children.forEach( child => {
+    if( validCompomentInstance( child ) ) {
+      targetEl.appendChild( child.el )
+      child.mounted()
+    } else {
+      targetEl.appendChild( document.createTextNode( child ) )
+    }
+  } )
 }
 
-export function createElement( tagname, props, children ) {
-  let el = document.createElement( tagname )
+export function createElement( tag, props, children = [] ) {
+  const isComponent = tag instanceof Object
   
-  if( props ) {
+  let componentInstance
+  if( isComponent ) {
+    componentInstance = new tag( props )
+    componentInstance.create()
+    const rootComponentInstance = componentInstance.render()
+    componentInstance.el = rootComponentInstance.el
+    componentInstance.children = rootComponentInstance.children 
+    componentInstance.container = tag 
+  } else {
+    componentInstance = new Component( props )
+    componentInstance.create()
+    componentInstance.el = document.createElement( tag )
+    componentInstance.container = tag
+
     Object.keys( props ).forEach( key => {
       if( eventHandlerMap[key] ) {
-        eventHandlerMap[key]( el, props[key] )
+        eventHandlerMap[key]( componentInstance.el, props[key] )
       } 
     } )
+  } 
+
+  if( children.length ) {
+    render( componentInstance.el, children )
+    componentInstance.children.push( ...children ) 
   }
 
-  if( children ) {
-    render( el, children )
-  }
-
-  return el
+  return componentInstance
 }
-
-//el이 생성되기 전
-//el이 실행되고 난뒤
-//el이 update된 후
 
 export class Component {
   constructor( props ) {
     this.props = props
-    this.status = {}
+    this.$tag = null
+    this.$el = null
+    this.$children = []
   }
 
-  setStatus() {
-    
+  set el( $el ) {
+    this.$el = $el 
   }
 
-  //dom에 그려지기 전
-  willMount() {
-    
+  set tag( tag ) {
+    this.$tag = tag
   }
 
-  //dom에 append된 후
-  didMount() {
-    
+  set children( children ) {
+    this.$children = children
   }
 
-  //dom에서 제거 되기 전
-  willUnmount() {
-
+  get el() {
+    return this.$el
   }
 
-  //dom에서 제거되기 직전
+  get tag() {
+    return this.$tag
+  }
+
+  get children(  ) {
+    return this.$children
+  }
+
+  create() {
+  }
+
+  mounted() {
+  }
+
+  unmount() {
+  }
+
+  unmounted() {
+  }
+
   render() {
-    // return createElement
+    return createElement( this.tag, this.props, this.$children )
   }
 }
 
@@ -67,7 +113,22 @@ const eventHandlerMap = {
   'class': ( el, prop ) => {
     el.setAttribute( 'class', prop )
   },
+  'value': ( el, prop ) => {
+    el.setAttribute( 'value', prop )
+  },
   'onClick': ( el, prop ) => {
     el.addEventListener( 'click', ( event ) => prop( event ) )
-  }
+  },
+  'onInput': ( el, prop ) => {
+    el.addEventListener( 'input', ( event ) => prop( event ) )
+  },
+  'onChange': ( el, prop ) => {
+    el.addEventListener( 'change', ( event ) => prop( event ) )
+  },
+  'onFocus': ( el, prop ) => {
+    el.addEventListener( 'focus', ( event ) => prop( event ) )
+  },
+  'onBlur': ( el, prop ) => {
+    el.addEventListener( 'blur', ( event ) => prop( event ) )
+  },
 }
